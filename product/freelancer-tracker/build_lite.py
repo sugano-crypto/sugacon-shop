@@ -106,6 +106,7 @@ sm["A7"].font = Font(italic=True, size=9)
 pw = os.environ.get("LITE_SHEET_PASSWORD", "")
 for sh in wb.worksheets:
     sh.protection.sheet = True
+    sh.protection.selectLockedCells = True  # True = NOT allowed: formula cells cannot be selected or copied
     if pw: sh.protection.set_password(pw)
 wb.security = WorkbookProtection(lockStructure=True)
 if pw: wb.security.set_workbook_password(pw)
