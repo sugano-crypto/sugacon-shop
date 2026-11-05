@@ -17,3 +17,10 @@ Principle: no spam, no automated posting, no fake accounts, follow each platform
 
 ## Measure (after publication)
 Payhip Analytics: visits, sources, conversion. Log weekly in the Google Sheet "Daily Log". Change one thing at a time (title, price, cover) and record it.
+
+---
+# Payhip Taxes tab (viewed by owner 2026-11-05, nothing changed)
+- US/Canada: Payhip handles sales tax (marketplace facilitator). EU/UK: Payhip handles digital VAT automatically (both boxes checked by default).
+- Store Address: empty; used for US sales tax calculation only, not shown to customers.
+- Tax Rates: manual per-country rates for taxes the seller must collect; empty. Do NOT add Japan consumption tax without a tax professional's judgement.
+- Japan consumption tax is not handled by Payhip. Treatment of sales (overseas and domestic buyers) for the corporation: 未確認 — ask the owner's tax accountant.
