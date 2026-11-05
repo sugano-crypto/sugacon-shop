@@ -80,7 +80,7 @@ st.add_data_validation(dvy); dvy.add("B2")
 
 # ---------- Income ----------
 inc = wb.create_sheet("Income")
-inc_cols = ["Date", "Client / Source", "Description", "Amount received", "Fees deducted at source", "Net income", "Month"]
+inc_cols = ["Date", "Client / Source", "Description", "Amount received", "Fees deducted at source", "Income after fees", "Month"]
 for i, h in enumerate(inc_cols, start=1):
     c = inc.cell(1, i, h); c.font, c.fill = hdr_font, hdr_fill
     c.alignment = Alignment(wrap_text=True, vertical="center")
@@ -128,7 +128,8 @@ dvd.add(f"A2:A{N+1}"); dvc.add(f"C2:C{N+1}")
 # ---------- Monthly Summary ----------
 ms = wb.create_sheet("Monthly Summary")
 ms.sheet_view.showGridLines = False
-heads = ["Month", "Net income", "Expenses", "Profit", "Set aside for tax", "Left after set-aside", "Goal met?"]
+heads = ["Month", "Income after fees", "Expenses", "Profit", "Profit margin", "Payments (count)", "Avg. payment",
+         "Set aside for tax", "Left after set-aside", "Goal met?"]
 ms["A1"] = '="Monthly Summary — "&Settings!B2&"  ("&Settings!B3&")"'
 ms["A1"].font = Font(bold=True, size=14, color=NAVY)
 for i, h in enumerate(heads, start=1):
@@ -141,28 +142,37 @@ for m in range(1, 13):
     ms.cell(r, 2, f"=SUMIF(Income!$G$2:$G${N+1},{m},Income!$F$2:$F${N+1})")
     ms.cell(r, 3, f"=SUMIF(Expenses!$F$2:$F${N+1},{m},Expenses!$E$2:$E${N+1})")
     ms.cell(r, 4, f"=B{r}-C{r}")
-    ms.cell(r, 5, f"=MAX(0,D{r})*Settings!$B$4")
-    ms.cell(r, 6, f"=D{r}-E{r}")
-    ms.cell(r, 7, f'=IF(Settings!$B$5<=0,"",IF(D{r}>=Settings!$B$5,"Yes","No"))')
-    ms.cell(r, 7).alignment = Alignment(horizontal="center")
+    ms.cell(r, 5, f'=IF(B{r}=0,"",D{r}/B{r})')
+    ms.cell(r, 6, f"=COUNTIF(Income!$G$2:$G${N+1},{m})")
+    ms.cell(r, 7, f'=IF(F{r}=0,"",B{r}/F{r})')
+    ms.cell(r, 8, f"=MAX(0,D{r})*Settings!$B$4")
+    ms.cell(r, 9, f"=D{r}-H{r}")
+    ms.cell(r, 10, f'=IF(Settings!$B$5<=0,"",IF(D{r}>=Settings!$B$5,"Yes","No"))')
+    ms.cell(r, 10).alignment = Alignment(horizontal="center")
 tr = 16
 ms.cell(tr, 1, "Year total").font = Font(bold=True)
-for col in "BCDEF":
+for col in "BCDFHI":
     ms[f"{col}{tr}"] = f"=SUM({col}4:{col}15)"
+ms[f"E{tr}"] = f'=IF(B{tr}=0,"",D{tr}/B{tr})'
+ms[f"G{tr}"] = f'=IF(F{tr}=0,"",B{tr}/F{tr})'
+for col in "ABCDEFGHI":
     ms[f"{col}{tr}"].font = Font(bold=True)
 for r in range(4, tr + 1):
-    for col in range(2, 7):
+    for col in (2, 3, 4, 7, 8, 9):
         ms.cell(r, col).number_format = MONEY
-    for col in range(1, 8):
+    ms.cell(r, 5).number_format = "0.0%"
+    ms.cell(r, 6).number_format = "0"
+    for col in range(1, 11):
         ms.cell(r, col).border = box
         if r == tr: ms.cell(r, col).fill = PatternFill("solid", fgColor=GREY)
 ms.column_dimensions["A"].width = 14
-for col in "BCDEF": ms.column_dimensions[col].width = 18
-ms.column_dimensions["G"].width = 12
-ms.conditional_formatting.add("G4:G15", CellIsRule(operator="equal", formula=['"Yes"'],
+for col in "BCDEFGHI": ms.column_dimensions[col].width = 16
+ms.column_dimensions["J"].width = 12
+ms.row_dimensions[3].height = 32
+ms.conditional_formatting.add("J4:J15", CellIsRule(operator="equal", formula=['"Yes"'],
                               fill=PatternFill("solid", bgColor="C6EFCE", fgColor="C6EFCE")))
 ms.conditional_formatting.add("D4:D16", CellIsRule(operator="lessThan", formula=["0"], font=Font(color="C00000")))
-ms["A18"] = "Set-aside is calculated only on positive monthly profit. Months with a loss set aside 0. Planning aid only, not tax advice."
+ms["A18"] = "Profit margin = profit / income after fees. Avg. payment = income after fees / number of payments. Set-aside is calculated only on positive monthly profit. Planning aid only, not tax advice."
 ms["A18"].font = Font(italic=True, size=9)
 
 # ---------- Sample data ----------
@@ -195,7 +205,7 @@ with zipfile.ZipFile(out) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED
         data = zin.read(item.filename)
         if item.filename == target:
             x = data.decode()
-            tag = '<ignoredErrors><ignoredError sqref="B4:F16" formula="1"/></ignoredErrors>'
+            tag = '<ignoredErrors><ignoredError sqref="B4:J16" formula="1"/></ignoredErrors>'
             assert "</pageMargins>" in x or "<pageMargins" in x
             x = re.sub(r'(<pageMargins[^>]*/>)', r'\1' + tag, x, count=1)
             data = x.encode()

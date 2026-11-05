@@ -13,7 +13,7 @@ A simple spreadsheet that totals your freelance income and expenses by month and
 Stop guessing how much of this month's income is really yours.
 
 Enter each payment and cost once. The tracker does the rest:
-- Monthly income, expenses and profit for the whole year
+- Monthly income after fees, expenses and profit for the whole year, with profit margin, payment count and average payment
 - A tax set-aside amount based on a percentage YOU choose
 - Optional monthly profit goal, highlighted when reached
 - Expense categories you can edit; fees deducted at source (e.g. platform or payment fees) handled per income row

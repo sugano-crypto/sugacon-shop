@@ -27,14 +27,14 @@ lines = [
     ("HOW TO USE", Font(bold=True, size=12)),
     ("1.  Income: add one row per payment received (yellow cells).", None),
     ("2.  Expenses: add one row per cost (yellow cells).", None),
-    ("3.  The totals line at the top of each sheet adds everything up.", None),
+    ("3.  Summary: see total income, total expenses and your profit (income after fees minus expenses).", None),
     ("", None),
     ("LITE LIMITS", Font(bold=True, size=12)),
-    (f"•  {N} rows each for income and expenses, and one total per sheet.", None),
-    ("•  No monthly breakdown, no tax set-aside estimate, no goals, no expense categories.", None),
+    (f"•  {N} rows each for income and expenses, plus one overall summary.", None),
+    ("•  No monthly breakdown, profit margin, average payment, tax set-aside estimate, goals or expense categories.", None),
     ("", None),
-    ("FULL VERSION adds: monthly summary for the whole year, a tax set-aside amount from a percentage you choose,", Font(bold=True)),
-    ("monthly profit goals, editable expense categories, 500 rows each, and reuse every year.", Font(bold=True)),
+    ("FULL VERSION adds: a month-by-month summary for the whole year with profit margin, payment count and average payment,", Font(bold=True)),
+    ("a tax set-aside amount from a percentage you choose, monthly profit goals, editable categories, 500 rows each, and reuse every year.", Font(bold=True)),
     ("", None),
     ("This is a bookkeeping aid, not tax, legal or accounting advice. Works in Excel, LibreOffice and Google Sheets. No macros.", Font(italic=True)),
 ]
@@ -57,8 +57,8 @@ def sheet(name, cols, widths, total_col_idx, total_label):
     s.freeze_panes = f"A{HDR+1}"
     return s
 
-inc = sheet("Income", ["Date", "Client / Source", "Description", "Amount received", "Fees deducted at source", "Net income"],
-            (13, 24, 34, 16, 16, 14), 6, "Total net income:")
+inc = sheet("Income", ["Date", "Client / Source", "Description", "Amount received", "Fees deducted at source", "Income after fees"],
+            (13, 24, 34, 16, 16, 14), 6, "Total income after fees:")
 exp = sheet("Expenses", ["Date", "Vendor", "Description", "Amount"], (13, 24, 34, 14), 4, "Total expenses:")
 
 last = HDR + N
@@ -86,6 +86,17 @@ if sample:
         for j, v in enumerate(row, start=1): inc.cell(i, j, v)
     for i, row in enumerate([(date(y,1,3),"Adobe","Creative suite",60),(date(y,2,14),"Cowork Space","Day passes",90)], start=HDR+1):
         for j, v in enumerate(row, start=1): exp.cell(i, j, v)
+
+sm = wb.create_sheet("Summary", 1)
+sm.sheet_view.showGridLines = False
+sm.column_dimensions["A"].width = 34; sm.column_dimensions["B"].width = 18
+sm["A1"] = "Summary"; sm["A1"].font = Font(bold=True, size=14, color=NAVY)
+rows = [("Total income after fees", "=Income!D2"), ("Total expenses", "=Expenses!D2"), ("Profit", "=B3-B4")]
+for i, (a, f) in enumerate(rows, start=3):
+    sm.cell(i, 1, a); c = sm.cell(i, 2, f); c.number_format = MONEY
+sm["A5"].font = Font(bold=True); sm["B5"].font = Font(bold=True)
+sm["A7"] = "Month-by-month breakdown, profit margin, average payment and tax set-aside are in the full version."
+sm["A7"].font = Font(italic=True, size=9)
 
 wb.save(out)
 print("saved", out, wb.sheetnames)
