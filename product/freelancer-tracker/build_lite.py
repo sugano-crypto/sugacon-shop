@@ -2,7 +2,9 @@
 import sys
 from datetime import date
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Font, PatternFill, Alignment, Protection
+from openpyxl.workbook.protection import WorkbookProtection
+import os
 from openpyxl.worksheet.datavalidation import DataValidation
 
 out = sys.argv[1]
@@ -36,6 +38,7 @@ lines = [
     ("FULL VERSION adds: a month-by-month summary for the whole year with profit margin, payment count and average payment,", Font(bold=True)),
     ("a tax set-aside amount from a percentage you choose, monthly profit goals, editable categories, 500 rows each, and reuse every year.", Font(bold=True)),
     ("", None),
+    ("The sheets are locked (except the yellow input cells) to protect the formulas. Please do not copy or redistribute this file.", None),
     ("This is a bookkeeping aid, not tax, legal or accounting advice. Works in Excel, LibreOffice and Google Sheets. No macros.", Font(italic=True)),
 ]
 for i, (t, f) in enumerate(lines, start=2):
@@ -71,11 +74,13 @@ inc.add_data_validation(dvd); exp.add_data_validation(dvd)
 for r in range(HDR + 1, last + 1):
     for col in (1, 2, 3, 4, 5):
         inc.cell(r, col).fill = inp
+        inc.cell(r, col).protection = Protection(locked=False)
     inc.cell(r, 1).number_format = "yyyy-mm-dd"
     inc.cell(r, 4).number_format = MONEY; inc.cell(r, 5).number_format = MONEY
     inc.cell(r, 6, f'=IF(D{r}="","",D{r}-N(E{r}))').number_format = MONEY
     for col in (1, 2, 3, 4):
         exp.cell(r, col).fill = inp
+        exp.cell(r, col).protection = Protection(locked=False)
     exp.cell(r, 1).number_format = "yyyy-mm-dd"; exp.cell(r, 4).number_format = MONEY
 dvd.add(f"A{HDR+1}:A{last}")
 
@@ -98,5 +103,11 @@ sm["A5"].font = Font(bold=True); sm["B5"].font = Font(bold=True)
 sm["A7"] = "Month-by-month breakdown, profit margin, average payment and tax set-aside are in the full version."
 sm["A7"].font = Font(italic=True, size=9)
 
+pw = os.environ.get("LITE_SHEET_PASSWORD", "")
+for sh in wb.worksheets:
+    sh.protection.sheet = True
+    if pw: sh.protection.set_password(pw)
+wb.security = WorkbookProtection(lockStructure=True)
+if pw: wb.security.set_workbook_password(pw)
 wb.save(out)
 print("saved", out, wb.sheetnames)
