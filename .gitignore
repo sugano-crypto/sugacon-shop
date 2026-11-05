@@ -1,0 +1,6 @@
+# Never commit identity documents, credentials or private ledgers
+data/
+*.pdf
+.env
+*secret*
+*credential*
