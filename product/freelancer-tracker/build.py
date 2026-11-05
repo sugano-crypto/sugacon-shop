@@ -181,4 +181,24 @@ if sample:
 
 wb.move_sheet("Monthly Summary", offset=-(len(wb.sheetnames) - 3))
 wb.save(out)
+
+# Suppress Excel's cosmetic "inconsistent formula" green triangles on the summary sheet.
+import zipfile, shutil, re, os
+tmp = out + ".tmp"
+with zipfile.ZipFile(out) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+    wbx = zin.read("xl/workbook.xml").decode()
+    rels = zin.read("xl/_rels/workbook.xml.rels").decode()
+    rid = re.search(r'<sheet [^>]*name="Monthly Summary"[^>]*r:id="(rId\d+)"', wbx).group(1)
+    target = re.search(r'<Relationship [^>]*Id="%s"[^>]*Target="([^"]+)"' % rid, rels) or re.search(r'<Relationship [^>]*Target="([^"]+)"[^>]*Id="%s"' % rid, rels)
+    target = "xl/" + target.group(1).lstrip("/").replace("xl/", "")
+    for item in zin.infolist():
+        data = zin.read(item.filename)
+        if item.filename == target:
+            x = data.decode()
+            tag = '<ignoredErrors><ignoredError sqref="B4:F16" formula="1"/></ignoredErrors>'
+            assert "</pageMargins>" in x or "<pageMargins" in x
+            x = re.sub(r'(<pageMargins[^>]*/>)', r'\1' + tag, x, count=1)
+            data = x.encode()
+        zout.writestr(item, data)
+shutil.move(tmp, out)
 print("saved", out, wb.sheetnames)
