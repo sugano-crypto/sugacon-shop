@@ -22,8 +22,12 @@ Enter each payment and cost once. The tracker does the rest:
 What you get: a blank .xlsx, a filled-in sample .xlsx, and a one-page README.
 Works in Excel, LibreOffice and Google Sheets. No macros.
 
+Built with the help of AI tools. The formulas were checked by recalculating the workbook with sample data.
+
 Please note: this is a bookkeeping aid, not tax, legal or accounting advice. The set-aside rate is a planning figure you choose.
 
-**AI disclosure:** Not yet decided. Payhip's AI policy is still 未確認; owner to decide. The file's formulas were verified by recalculation against hand-computed totals.
+**AI disclosure (decided by owner: disclose):** The description ends with the line below. Do not claim human review until the owner has actually opened and tested the file.
+
+> Built with the help of AI tools. The formulas were checked by recalculating the workbook with sample data.
 
 **Banned-wording check (Payhip terms s.4 lists "get-rich-quick content"):** copy avoids income promises and earnings claims.
